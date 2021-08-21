@@ -1,0 +1,35 @@
+FROM centos:8
+
+MAINTAINER actors315 <actors315@gmail.com>
+
+# 开发环境
+RUN yum install -y wget make unzip \
+    && cd /usr/local/src \
+    && wget https://golang.google.cn/dl/go1.16.4.linux-amd64.tar.gz \
+    && wget https://github.com/protocolbuffers/protobuf/releases/download/v3.16.0/protoc-3.16.0-linux-x86_64.zip \
+# 安装 protoc
+    && cd /usr/local/src \
+    && unzip protoc-3.16.0-linux-x86_64.zip -d /usr/local/protoc-3.16 \
+    && echo 'export PATH=/usr/local/protoc-3.16/bin:$PATH' >> /etc/bashrc \
+# 安装 GO
+    && cd /usr/local/src \
+    && tar -C /usr/local -xvf go1.16.4.linux-amd64.tar.gz \
+    && echo 'export PATH=/usr/local/go/bin:$PATH' >> /etc/bashrc \
+    && echo 'export GOROOT=/usr/local/go' >> /etc/bashrc \
+    && echo 'export GOPATH=/usr/local/src/go-path' >> /etc/bashrc \
+    && echo 'export GOPROXY=https://mirrors.cloud.tencent.com/go/' >> /etc/bashrc \
+    && echo 'export PATH=$GOPATH/bin:$PATH' >> /etc/bashrc \
+# 安装 GO 专用 protoc 生成器
+    && source /etc/bashrc \
+    && go get github.com/golang/protobuf/protoc-gen-go \
+# 清理
+    && cd /usr/local/src \
+    && rm -rf * \
+    && yum remove -y wget unzip \
+    && yum clean all
+
+EXPOSE 8000
+
+CMD ["/bin/bash"]
+
+# docker run -p 8000:8000 -v E:\code\go\tapd-webhook:/usr/local/src/tapd-webhook -itd actors315/grpc-develop
